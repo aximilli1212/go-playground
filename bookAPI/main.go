@@ -44,6 +44,7 @@ func getBook(w http.ResponseWriter, r *http.Request){
 		return
 	}
 	}
+
 	json.NewEncoder(w).Encode(&Book{})
 
 }// Get all Books
@@ -57,9 +58,34 @@ func createBook(w http.ResponseWriter, r *http.Request){
 
 }// Get all Books
 func updateBooks(w http.ResponseWriter, r *http.Request){
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r);
+
+	for index, item := range books{
+		if item.ID == params["id"]{
+			books = append(books[:index], books[index+1:]... )
+			var book Book
+			_ = json.NewDecoder(r.Body).Decode(&book)
+			book.ID = strconv.Itoa(rand.Intn(1000000)) // MOck ID
+
+			books = append(books, book)
+			json.NewEncoder(w).Encode(book)
+			return
+		}
+	}
+
 
 }// Get all Books
 func deleteBooks(w http.ResponseWriter, r *http.Request){
+	w.Header().Set("Content-Type", "application/json")
+	params :=mux.Vars(r)
+	for index, item := range books {
+		if item.ID == params["id"]{
+			books = append(books[:index], books[index+1:]...)
+			break
+		}
+	}
+              json.NewEncoder(w).Encode(books)
 
 }
 
@@ -80,7 +106,7 @@ func main(){
 	r.HandleFunc("/api/books/{id}",getBook).Methods("GET")
 	r.HandleFunc("/api/books",createBook).Methods("POST")
 	r.HandleFunc("/api/books/{id}",updateBooks).Methods("PUT")
-	r.HandleFunc("/api/books",deleteBooks).Methods("DELETE")
+	r.HandleFunc("/api/books/{id}",deleteBooks).Methods("DELETE")
 
 	log.Fatal(http.ListenAndServe(":8000",r))
 
